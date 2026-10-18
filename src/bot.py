@@ -1,13 +1,14 @@
 import logging
 from dotenv import load_dotenv
 import os
+import pytest
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes, filters, MessageHandler
 
 load_dotenv()
 
-def require_env(env_item):
+def require_env(env_item) -> str:
     item = os.getenv(env_item)
     if not item:
         raise ValueError(f"{env_item} was not set!")
