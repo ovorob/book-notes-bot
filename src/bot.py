@@ -1,10 +1,15 @@
 import logging
-from dotenv import load_dotenv
 import os
-import pytest
 
+from dotenv import load_dotenv
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, filters, MessageHandler
+from telegram.ext import (
+    Application,
+    CommandHandler,
+    ContextTypes,
+    MessageHandler,
+    filters,
+)
 
 load_dotenv()
 
