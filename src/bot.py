@@ -143,6 +143,63 @@ async def audio_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await process_text(update=update, message=transcribed_message)
 
 
+async def audio_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    voice = update.effective_message.voice
+
+    if voice.duration < MIN_SECONDS:
+        await update.effective_message.reply_text("The audio is too short, please try again!")
+        return
+
+    if voice.duration > MAX_SECONDS:
+        await update.effective_message.reply_text(f"The audio is too long. Max duration is {MAX_SECONDS} sec, please try again!")
+        return
+
+    if voice.file_size and voice.file_size > MAX_BYTES:
+        await update.effective_message.reply_text("The file is too big!")
+        return
+
+    try:
+        tg_file = await context.bot.get_file(voice.file_id)
+    except BadRequest:
+        await update.effective_message.reply_text("Couldn't download the file!")
+        return
+
+    await context.bot.send_chat_action(
+        chat_id=update.effective_chat.id,
+        action=constants.ChatAction.TYPING
+    )
+
+    try:
+        audio_bytes = bytes(await tg_file.download_as_bytearray())
+        if not audio_bytes:
+            await update.effective_message.reply_text("The audio came up empty! Try again!")
+            return
+        transcribed_message = await transcriber.transcribe(audio_bytes)
+    except RateLimitError:
+        await update.effective_message.reply_text("OpenAI is busy or out of credit, check your balance or try again in a minute.")
+        logger.exception("Rate Limit Error")
+        return
+    except APIConnectionError:
+        await update.effective_message.reply_text("API Connection Error!")
+        logger.exception("API Connection Error")
+        return
+    except APIError:
+        await update.effective_message.reply_text("OpenAI rejected the API key, check .env")
+        logger.exception("API Error")
+        return
+    except Exception:
+        await update.effective_message.reply_text("Something went wrong!")
+        logger.exception("Something went wrong")
+        return
+
+    if not transcribed_message.strip():
+        await update.effective_message.reply_text("There are no words in your message, please try again!")
+        logger.warning("The audio message was empty!")
+        return
+    await update.effective_message.reply_text(transcribed_message)
+
+
+
 def main() -> None:
     allowed_user = filters.User(user_id=ALLOWED_USER)
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
