@@ -142,6 +142,7 @@ async def audio_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
     await process_text(update=update, message=transcribed_message)
 
+
 def main() -> None:
     allowed_user = filters.User(user_id=ALLOWED_USER)
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()

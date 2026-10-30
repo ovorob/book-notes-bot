@@ -23,10 +23,10 @@ class ParsedNote(BaseModel):
     entries: list[Entry]
 
 
-def format_note(note: ParsedNote):
+def format_note(note: ParsedNote) -> str:
     format_list = []
 
-    book = "not specified" if not note.book else note.book
+    book = note.book or "not specified"
     format_list.append(f"Book: {book}")
     if note.author:
         format_list.append(f"Author: {note.author}")

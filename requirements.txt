@@ -2,4 +2,5 @@ python-dotenv
 python-telegram-bot
 openai
 pydantic
+pytest
 
